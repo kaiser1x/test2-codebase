@@ -152,7 +152,7 @@ export function resetPassword(token: string, newPassword: string): PublicUser {
   if (!record) {
     throw new Error('Password reset token is invalid or has already been used')
   }
-  if (store.now() > record.expiresAt) {
+  if (Date.now() > record.expiresAt) {
     store.resets.delete(key)
     throw new Error('Password reset token has expired')
   }

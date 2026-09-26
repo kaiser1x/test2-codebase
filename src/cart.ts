@@ -62,32 +62,53 @@ export function addItem(cartId: string, productId: string, quantity: number): Ca
   const cart = getCartOrThrow(cartId)
   const product = getProductOrThrow(productId)
 
-  const existing = cart.items.get(productId)
-  if (existing) {
-    existing.quantity += quantity
-  } else {
-    cart.items.set(productId, {
-      productId,
-      name: product.name,
-      unitPrice: product.price,
-      quantity,
-    })
+  for (const item of cart.items.values()) {
+    if (item.productId === productId) {
+      item.quantity += quantity
+      return cart
+    }
   }
+  cart.items.set(randomUUID(), {
+    productId,
+    name: product.name,
+    unitPrice: product.price,
+    quantity,
+  })
+  return cart
+}
+
+export function addItemAsNewLine(cartId: string, productId: string, quantity: number): Cart {
+  assertValidQuantity(quantity)
+  const cart = getCartOrThrow(cartId)
+  const product = getProductOrThrow(productId)
+  cart.items.set(randomUUID(), {
+    productId,
+    name: product.name,
+    unitPrice: product.price,
+    quantity,
+  })
   return cart
 }
 
 export function updateItemQuantity(cartId: string, productId: string, quantity: number): Cart {
   assertValidQuantity(quantity)
   const cart = getCartOrThrow(cartId)
-  const item = cart.items.get(productId)
-  if (!item) throw new Error(`Cart ${cartId} has no item for product ${productId}`)
-  item.quantity = quantity
-  return cart
+  for (const item of cart.items.values()) {
+    if (item.productId === productId) {
+      item.quantity = quantity
+      return cart
+    }
+  }
+  throw new Error(`Cart ${cartId} has no item for product ${productId}`)
 }
 
 export function removeItem(cartId: string, productId: string): Cart {
   const cart = getCartOrThrow(cartId)
-  cart.items.delete(productId)
+  let target: string | undefined
+  for (const [lineId, item] of cart.items) {
+    if (item.productId === productId) target = lineId
+  }
+  if (target) cart.items.delete(target)
   return cart
 }
 

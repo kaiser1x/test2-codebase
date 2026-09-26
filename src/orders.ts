@@ -39,7 +39,13 @@ function formatMoney(amount: number): string {
   return (amount / 100).toFixed(2)
 }
 
-export function createOrder(userId: string, cartId: string): Order {
+export function applyDiscount(subtotal: number, discountCode: string | undefined): number {
+  if (!discountCode) return subtotal
+  if (discountCode === 'SAVE10') return Math.round(subtotal * 0.9)
+  throw new Error(`Unknown discount code: ${discountCode}`)
+}
+
+export function createOrder(userId: string, cartId: string, discountCode?: string): Order {
   const user = getUserByIdOrThrow(userId)
   const cart = getCart(cartId)
   if (!cart) throw new Error(`Unknown cart: ${cartId}`)
@@ -50,13 +56,14 @@ export function createOrder(userId: string, cartId: string): Order {
   const items = getCartItems(cartId)
   if (items.length === 0) throw new Error('Cannot place an order with an empty cart')
 
-  const total = getCartTotal(cartId)
+  const subtotal = getCartTotal(cartId)
+  const total = applyDiscount(subtotal, discountCode)
   const payment = createPayment(user.id, total)
   const order: Order = {
     id: randomUUID(),
     userId: user.id,
     items,
-    total,
+    total: subtotal,
     paymentId: payment.id,
     status: 'paid',
     createdAt: store.now(),

@@ -90,6 +90,18 @@ describe('users', () => {
     expect(authenticateUser('bob@example.com', 'old')).not.toBeNull()
   })
 
+  it('does not accept a reset token after it has expired', () => {
+    const user = createUser({ email: 'bob@example.com', name: 'Bob', password: 'old' })
+    const farFuture = 9_999_999_999_999
+    setUsersNow(() => farFuture)
+
+    const token = requestPasswordReset(user.email)
+    setUsersNow(() => farFuture + 16 * 60 * 1000)
+
+    expect(() => resetPassword(token, 'new')).toThrow(/expired/)
+    expect(authenticateUser('bob@example.com', 'old')).not.toBeNull()
+  })
+
   it('notifies the user when the password is changed', () => {
     const user = createUser({ email: 'bob@example.com', name: 'Bob', password: 'old' })
     const token = requestPasswordReset(user.email)

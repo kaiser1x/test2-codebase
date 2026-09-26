@@ -5,6 +5,7 @@ import {
   createUser,
   destroySession,
   getSession,
+  refreshSession,
   resetState,
   setSessionsNow,
 } from '../src/index'
@@ -67,5 +68,17 @@ describe('sessions', () => {
 
     expect(getSession(session.token)).toBeNull()
     expect(authenticate(session.token)).toBeNull()
+  })
+
+  it('does not refresh an expired session', () => {
+    const user = createUser({ email: 'bob@example.com', name: 'Bob', password: 'x' })
+    const fixedNow = 1_700_000_000_000
+    setSessionsNow(() => fixedNow)
+
+    const session = createSession(user.id)
+    setSessionsNow(() => fixedNow + 61 * 60 * 1000)
+
+    expect(() => refreshSession(session.token)).toThrow(/Unknown session/)
+    expect(getSession(session.token)).toBeNull()
   })
 })
