@@ -39,6 +39,14 @@ describe('orders', () => {
     expect(getOrder(order.id)?.id).toBe(order.id)
   })
 
+  it('applies a discount code to the order total', () => {
+    const { user, cart } = userWithCart()
+    const order = createOrder(user.id, cart.id, 'SAVE10')
+
+    expect(order.total).toBe(1350)
+    expect(getPayment(order.paymentId)?.amount).toBe(order.total)
+  })
+
   it('raises order and payment notifications on checkout', () => {
     const { user, cart } = userWithCart()
     createOrder(user.id, cart.id)

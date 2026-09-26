@@ -60,6 +60,13 @@ export function destroySession(token: string): void {
   store.sessions.delete(token)
 }
 
+export function refreshSession(token: string): Session {
+  const session = store.sessions.get(token)
+  if (!session) throw new Error(`Unknown session: ${token}`)
+  session.expiresAt = store.now() + SESSION_TTL_MS
+  return session
+}
+
 export function authenticate(token: string): PublicUser | null {
   const session = getSession(token)
   if (!session) return null

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   PRODUCTS,
   addItem,
+  addItemAsNewLine,
   clearCart,
   createCart,
   createUser,
@@ -87,5 +88,19 @@ describe('carts', () => {
 
     expect(isCartEmpty(cart.id)).toBe(true)
     expect(getCartTotal(cart.id)).toBe(0)
+  })
+
+  it('removes the intended line when a product appears more than once', () => {
+    const user = createUser({ email: 'bob@example.com', name: 'Bob', password: 'x' })
+    const cart = createCart(user.id)
+
+    addItem(cart.id, 'prod-latte', 1)
+    addItemAsNewLine(cart.id, 'prod-latte', 2)
+
+    removeItem(cart.id, 'prod-latte')
+
+    const latteLines = getCartItems(cart.id).filter((item) => item.productId === 'prod-latte')
+    expect(latteLines).toHaveLength(1)
+    expect(latteLines[0]?.quantity).toBe(2)
   })
 })
