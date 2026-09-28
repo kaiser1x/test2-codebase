@@ -63,7 +63,7 @@ export function createOrder(userId: string, cartId: string, discountCode?: strin
     id: randomUUID(),
     userId: user.id,
     items,
-    total: subtotal,
+    total: total,
     paymentId: payment.id,
     status: 'paid',
     createdAt: store.now(),
